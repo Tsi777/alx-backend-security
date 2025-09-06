@@ -1,0 +1,88 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-50 dark:bg-gray-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroicons/vue@2.0.16/24/outline/index.js"></script>
+    <!-- Add Heroicons for dashboard -->
+    <script src="https://unpkg.com/@heroicons/vue@2.0.16/24/outline/index.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- jQuery (required by DataTables) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables CSS & JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .card-transition {
+        transition: all 0.3s ease;
+      }
+      .card-transition:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+    </style>
+    </style>
+  </head>
+
+  <body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm flex-shrink-0">
+        <div class="p-6 text-center font-bold text-xl text-primary-700 dark:text-primary-400 border-b border-gray-200 dark:border-gray-700">
+          Admin Panel
+        </div>
+        <nav class="mt-6">
+          {% block sidebar %}
+          <!-- Default sidebar links -->
+          <a href="{% url 'admin:index' %}" class="block py-2 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Dashboard</a>
+          {% endblock %}
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+        {% block content %}
+        <!-- Default content placeholder -->
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Welcome to Admin</h1>
+        {% endblock %}
+      </main>
+    </div>
+
+    {% block extrafooter %}
+    <!-- Optional JS -->
+    {% endblock %}
+  </body>
+</html>
