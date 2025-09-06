@@ -1,0 +1,815 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-50 dark:bg-gray-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroicons/vue@2.0.16/24/outline/index.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Add Heroicons for dashboard -->
+    <script src="https://unpkg.com/@heroicons/vue@2.0.16/24/outline/index.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <!-- jQuery (required by DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .card-transition {
+        transition: all 0.3s ease;
+      }
+      .card-transition:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Custom DataTables styling for both light and dark modes */
+      .dataTables_wrapper .dataTables_length select,
+      .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+        color: #1f2937;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        margin: 0 0.5rem;
+      }
+
+      .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        margin: 0 0.125rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        justify-self: end;
+      }
+
+      .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background-color: #0ea5e9 !important;
+        color: white !important;
+        font-weight: 500;
+      }
+
+      .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: #e5e7eb;
+      }
+
+      /* Dark mode specific styling for DataTables */
+      .dark .dataTables_wrapper .dataTables_length select,
+      .dark .dataTables_wrapper .dataTables_filter input {
+        border-color: #4b5563;
+        background-color: #374151;
+        color: #f3f4f6;
+      }
+
+      .dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: #4b5563;
+      }
+
+      .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background-color: #0ea5e9 !important;
+        color: white !important;
+      }
+
+      /* Custom status badges */
+      .status-normal {
+        background-color: #dcfce7;
+        color: #166534;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .status-suspicious {
+        background-color: #fffbeb;
+        color: #92400e;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .status-blocked {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      /* Dark mode status badges */
+      .dark .status-normal {
+        background-color: #064e3b;
+        color: #6ee7b7;
+      }
+
+      .dark .status-suspicious {
+        background-color: #7c2d12;
+        color: #fed7aa;
+      }
+
+      .dark .status-blocked {
+        background-color: #7f1d1d;
+        color: #fca5a5;
+      }
+
+      /* Custom table header styling */
+      .dataTables_wrapper .dataTables_header {
+        background-color: #f9fafb;
+        color: #4b5563;
+        font-weight: 600;
+      }
+
+      .dark .dataTables_wrapper .dataTables_header {
+        background-color: #374151;
+        color: #e5e7eb;
+      }
+
+      /* Custom alternating row colors */
+      .dataTables_wrapper tbody tr:nth-child(odd) {
+        background-color: #f9fafb;
+      }
+
+      .dataTables_wrapper tbody tr:hover {
+        background-color: #f0f9ff;
+      }
+
+      .dark .dataTables_wrapper tbody tr:nth-child(odd) {
+        background-color: #1f2937;
+      }
+
+      .dark .dataTables_wrapper tbody tr:hover {
+        background-color: #1e3a8a;
+      }
+    </style>
+  </head>
+  <body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm flex-shrink-0"
+      >
+        <div
+          class="p-6 text-center font-bold text-xl text-primary-700 dark:text-primary-400 border-b border-gray-200 dark:border-gray-700"
+        >
+          <div class="flex items-center justify-center">
+            <svg
+              class="h-8 w-8 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <span>ALX Security</span>
+          </div>
+        </div>
+        <nav class="mt-6">
+          <a
+            href="{% url 'security_admin:dashboard' %}"
+            class="flex items-center py-3 px-6 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 border-l-4 border-transparent hover:border-primary-500"
+          >
+            <i class="fas fa-tachometer-alt mr-3 text-lg"></i>
+            <span>Dashboard</span>
+          </a>
+          <a
+            href="{% url 'security_admin:ip_tracking_requestlog_changelist' %}"
+            class="flex items-center py-3 px-6 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 border-l-4 border-transparent"
+          >
+            <i class="fas fa-list mr-3 text-lg"></i>
+            <span>Request Logs</span>
+          </a>
+          <a
+            href="{% url 'security_admin:ip_tracking_blockedip_changelist' %}"
+            class="flex items-center py-3 px-6 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 border-l-4 border-transparent"
+          >
+            <i class="fas fa-ban mr-3 text-lg"></i>
+            <span>Blocked IPs</span>
+          </a>
+          <a
+            href="{% url 'security_admin:ip_tracking_suspiciousip_changelist' %}"
+            class="flex items-center py-3 px-6 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 border-l-4 border-transparent"
+          >
+            <i class="fas fa-exclamation-triangle mr-3 text-lg"></i>
+            <span>Suspicious IPs</span>
+          </a>
+          <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-4">
+            <a
+              href="{% url 'security_admin:logout' %}"
+              class="flex items-center w-full py-3 px-6 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            >
+              <i class="fas fa-sign-out-alt mr-3"></i>
+              <span>Logout</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto">
+        <div
+          class="px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+        >
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                Security Dashboard
+              </h1>
+              <p class="mt-1 text-gray-500 dark:text-gray-400">
+                Real-time security monitoring and analytics
+              </p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-4">
+              <div class="relative">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  class="pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <i
+                  class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+                ></i>
+              </div>
+              <button
+                id="theme-toggle"
+                class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title="Toggle dark mode"
+              >
+                <i class="fas fa-moon hidden dark:block"></i>
+                <i class="fas fa-sun dark:hidden"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            class="card-transition bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md"
+          >
+            <div class="flex items-center">
+              <div
+                class="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4"
+              >
+                <i class="fas fa-chart-line text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Requests
+                </p>
+                <p
+                  class="mt-1 text-2xl font-semibold text-gray-800 dark:text-white"
+                >
+                  {{ recent_requests|length }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="mt-4 flex items-center text-sm text-green-600 dark:text-green-400"
+            >
+              <i class="fas fa-arrow-up mr-1"></i>
+              <span>12.5% from last week</span>
+            </div>
+          </div>
+
+          <div
+            class="card-transition bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md"
+          >
+            <div class="flex items-center">
+              <div
+                class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mr-4"
+              >
+                <i class="fas fa-ban text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Blocked IPs
+                </p>
+                <p
+                  class="mt-1 text-2xl font-semibold text-gray-800 dark:text-white"
+                >
+                  {{ blocked_ips|length }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="mt-4 flex items-center text-sm text-green-600 dark:text-green-400"
+            >
+              <i class="fas fa-arrow-up mr-1"></i>
+              <span>8.2% from last week</span>
+            </div>
+          </div>
+
+          <div
+            class="card-transition bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md"
+          >
+            <div class="flex items-center">
+              <div
+                class="p-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 mr-4"
+              >
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Suspicious IPs
+                </p>
+                <p
+                  class="mt-1 text-2xl font-semibold text-gray-800 dark:text-white"
+                >
+                  {{ suspicious_ips|length }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="mt-4 flex items-center text-sm text-red-600 dark:text-red-400"
+            >
+              <i class="fas fa-arrow-down mr-1"></i>
+              <span>3.1% from last week</span>
+            </div>
+          </div>
+
+          <div
+            class="card-transition bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md"
+          >
+            <div class="flex items-center">
+              <div
+                class="p-3 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 mr-4"
+              >
+                <i class="fas fa-globe text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Top IP Requests
+                </p>
+                <p
+                  class="mt-1 text-2xl font-semibold text-gray-800 dark:text-white"
+                >
+                  {{ top_ips|length }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="mt-4 flex items-center text-sm text-green-600 dark:text-green-400"
+            >
+              <i class="fas fa-arrow-up mr-1"></i>
+              <span>5.7% from last week</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+          <!-- Top IPs Chart -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
+          >
+            <div class="flex justify-between items-center mb-5">
+              <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                Top IPs by Request Volume
+              </h2>
+              <div class="flex space-x-2">
+                <button
+                  class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                >
+                  Day
+                </button>
+                <button
+                  class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                >
+                  Week
+                </button>
+                <button
+                  class="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded text-sm font-medium"
+                >
+                  Month
+                </button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="topIPsChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Traffic Distribution Chart -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
+          >
+            <div class="flex justify-between items-center mb-5">
+              <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                Traffic Distribution
+              </h2>
+              <div class="relative">
+                <select
+                  class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option>Last 7 days</option>
+                  <option>Last 30 days</option>
+                  <option>Last 90 days</option>
+                </select>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
+                >
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+              </div>
+            </div>
+            <div class="h-80 flex items-center justify-center">
+              <canvas id="trafficDistributionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Requests Table -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mx-6 mb-6 overflow-hidden"
+        >
+          <div
+            class="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                Recent Requests
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Latest security events from your application
+              </p>
+            </div>
+            <div class="mt-3 sm:mt-0">
+              <button
+                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center"
+              >
+                <i class="fas fa-download mr-2"></i> Export Data
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table
+              class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 recent-requests-table"
+            >
+              <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    IP Address
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    Path
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    Timestamp
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    Country
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    City
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in recent_requests %}
+                <tr
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div
+                        class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3"
+                      >
+                        <i
+                          class="fas fa-globe text-blue-600 dark:text-blue-400 text-xs"
+                        ></i>
+                      </div>
+                      <div
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {{ log.ip_address }}
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
+                  >
+                    {{ log.path }}
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
+                  >
+                    {{ log.timestamp }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <i class="fas fa-flag mr-2 text-gray-400"></i>
+                      <span class="text-sm text-gray-500 dark:text-gray-300"
+                        >{{ log.country }}</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
+                  >
+                    {{ log.city }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if log.is_suspicious %}
+                    <span class="status-suspicious">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Suspicious
+                    </span>
+                    {% elif log.is_blocked %}
+                    <span class="status-blocked">
+                      <i class="fas fa-ban mr-1"></i> Blocked
+                    </span>
+                    {% else %}
+                    <span class="status-normal">
+                      <i class="fas fa-check-circle mr-1"></i> Normal
+                    </span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
+    <script>
+      // FIXED: Wait for DOM to be fully loaded before executing scripts
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize theme from localStorage
+        const storedTheme = localStorage.getItem("theme");
+        if (
+          storedTheme === "dark" ||
+          (!storedTheme &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById("theme-toggle");
+        if (themeToggle) {
+          themeToggle.addEventListener("click", () => {
+            document.documentElement.classList.toggle("dark");
+            const isDark = document.documentElement.classList.contains("dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+
+            // Reinitialize DataTables to apply new theme
+            if ($.fn.DataTable.isDataTable(".recent-requests-table")) {
+              $(".recent-requests-table").DataTable().destroy();
+              initDataTable();
+            }
+          });
+        }
+
+        // Initialize DataTable function
+        function initDataTable() {
+          $(".recent-requests-table").DataTable({
+            pageLength: 10,
+            lengthMenu: [
+              [5, 10, 25, 50, -1],
+              [5, 10, 25, 50, "All"],
+            ],
+            order: [[2, "desc"]], // Default sort by Timestamp
+            columnDefs: [
+              { targets: [5], orderable: false }, // Disable sorting on Status column
+            ],
+            language: {
+              search: "",
+              searchPlaceholder: "Search...",
+              paginate: {
+                previous: '<i class="fas fa-chevron-left"></i>',
+                next: '<i class="fas fa-chevron-right"></i>',
+              },
+            },
+            drawCallback: function () {
+              // Add proper classes to DataTables elements for consistent styling
+              $("div.dataTables_filter input").addClass(
+                "pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              );
+              $("div.dataTables_length select").addClass(
+                "bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+              );
+            },
+          });
+        }
+
+        // Initialize DataTable
+        initDataTable();
+
+        // FIXED: Check if canvas elements exist before initializing charts
+        const topIPsChartElement = document.getElementById("topIPsChart");
+        const trafficChartElement = document.getElementById(
+          "trafficDistributionChart"
+        );
+
+        if (topIPsChartElement) {
+          try {
+            const topIPsCtx = topIPsChartElement.getContext("2d");
+
+            // FIXED: Add safety checks for data
+            let topIPs = [];
+            try {
+              topIPs = JSON.parse("{{ top_ips|escapejs }}");
+            } catch (e) {
+              console.error("Error parsing top_ips:", e);
+            }
+
+            let labels = [];
+            let dataPoints = [];
+
+            if (Array.isArray(topIPs) && topIPs.length > 0) {
+              labels = topIPs.map((item) => item.ip_address);
+              dataPoints = topIPs.map((item) => item.count);
+            } else {
+              // Provide fallback data if no data available
+              labels = ["No Data"];
+              dataPoints = [1];
+            }
+
+            new Chart(topIPsCtx, {
+              type: "bar",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Request Count",
+                    data: dataPoints,
+                    backgroundColor: "rgba(12, 74, 110, 0.6)",
+                    borderColor: "rgba(12, 74, 110, 1)",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                  tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.9)",
+                    padding: 12,
+                    titleFont: {
+                      size: 14,
+                    },
+                    bodyFont: {
+                      size: 13,
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(107, 114, 128, 0.1)",
+                    },
+                    ticks: {
+                      color: "rgba(107, 114, 128, 0.8)",
+                    },
+                  },
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "rgba(107, 114, 128, 0.8)",
+                    },
+                  },
+                },
+              },
+            });
+          } catch (error) {
+            console.error("Error initializing top IPs chart:", error);
+          }
+        }
+
+        if (trafficChartElement) {
+          try {
+            const trafficCtx = trafficChartElement.getContext("2d");
+
+            // FIXED: Properly handle numeric values
+            const normalTraffic = JSON.parse(
+              "{{ normal_traffic|default:0|safe }}"
+            );
+            const suspiciousTraffic = JSON.parse(
+              "{{ suspicious_traffic|default:0|safe }}"
+            );
+            const blockedTraffic = JSON.parse(
+              "{{ blocked_traffic|default:0|safe }}"
+            );
+
+            new Chart(trafficCtx, {
+              type: "doughnut",
+              data: {
+                labels: ["Normal", "Suspicious", "Blocked"],
+                datasets: [
+                  {
+                    data: [normalTraffic, suspiciousTraffic, blockedTraffic],
+                    backgroundColor: [
+                      "rgba(22, 101, 52, 0.7)", // green
+                      "rgba(161, 98, 7, 0.7)", // yellow
+                      "rgba(127, 29, 29, 0.7)", // red
+                    ],
+                    borderColor: [
+                      "rgba(22, 101, 52, 1)",
+                      "rgba(161, 98, 7, 1)",
+                      "rgba(127, 29, 29, 1)",
+                    ],
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      padding: 20,
+                      color: "rgba(107, 114, 128, 0.8)",
+                      font: {
+                        size: 12,
+                      },
+                    },
+                  },
+                  tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.9)",
+                    padding: 12,
+                    titleFont: {
+                      size: 14,
+                    },
+                    bodyFont: {
+                      size: 13,
+                    },
+                  },
+                },
+                cutout: "65%",
+              },
+            });
+          } catch (error) {
+            console.error("Error initializing traffic chart:", error);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
